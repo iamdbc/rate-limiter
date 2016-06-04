@@ -1,0 +1,17 @@
+{
+    "name": "milkytsu/rate-limiter",
+    "description": "Rate limiter for web applications or api",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Milky",
+            "email": "eplug1986@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-4": {}
+    }
+}
