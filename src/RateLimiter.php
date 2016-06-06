@@ -2,37 +2,36 @@
 
 namespace RateLimiter;
 
-use Contracts\Limiter;
+use RateLimiter\Contracts\Limiter;
 
 class RateLimiter implements Limiter
 {
-    private $prefix;
-    private $secondTimestamp;
-    private $miniteTimestamp;
-    private $hourTimstamp;
 
     private $cacheHandler;
 
     public function __construct($config)
     {
-        $cacheClass= "RateLimiter\\Cache\\" + $config['type'];
-        $this->cacheHandler = new $cacheClass;
+        $cacheClass = "RateLimiter\\Cache\\" . $config['cacheType'];
+        $this->cacheHandler = new $cacheClass($config);
     }
 
-    public function getRemainingCount($prefix, $timeSlots = [60], $maxLimit = [0])
+    public function getRemainingCount($prefix, $timeSlots = [60 => 100])
     {
-        echo 123;
+        $keys = [];
+        $return = [];
         // 通过$prefix查找是否有已设置的limit缓存
-
-        // 如果有，计数加1
-
-        // 如果没，创建缓存，计数初始为1
+        foreach ($timeSlots as $timeSlot => $maxLimit) {
+            $keys[$timeSlot] = $prefix . $timeSlot;
+        }
+        $currentCounts = $this->cacheHandler->mget($keys);
+        foreach ($currentCounts as $timeSlot => $currentCount) {
+            $returnCurrentCount = $this->cacheHandler->increment($keys[$timeSlot]);
+            $remainingCount = $timeSlots[$timeSlot] - $returnCurrentCount;
+            $return[$timeSlot] = $remainingCount;
+        }
+        return $return;
     }
 
-    private function getLimitCache($key)
-    {
-
-    }
 
     private function increaseCount($key)
     {
