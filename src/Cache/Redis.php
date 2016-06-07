@@ -35,16 +35,13 @@ class Redis implements Cache
             return $this->redis;
         }
 
-        if (!($redis = new Redis())) {
-            $redis->connect($this->host, $this->port, $this->timeOut);
-            if ($this->password) {
-                $redis->auth($this->password);
-            }
-            $redis->select($this->database);
-            return $this->redis = $redis;
-        } else {
-            throw new Exception("redis connect failed");
+        $redis = new \Redis();
+        $redis->connect($this->host, $this->port, $this->timeOut);
+        if ($this->password) {
+            $redis->auth($this->password);
         }
+        $redis->select($this->database);
+        return $this->redis = $redis;
     }
 
     public function get($key)
@@ -67,8 +64,13 @@ class Redis implements Cache
         return $this->connect()->set($this->prefix . $key, $value, (int)$expire);
     }
 
-    public function increment($key, $value = 1)
+    public function increment($key, $value = 1, $expire = null)
     {
-        return $this->connect()->incrBy($this->prefix . $key, $value);
+
+        $rst = $this->connect()->multi()
+            ->incrBy($this->prefix . $key, $value)
+            ->expire($this->prefix . $key, $expire)
+            ->exec();
+        return $rst[0];
     }
 }
